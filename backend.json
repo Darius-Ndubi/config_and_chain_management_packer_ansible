@@ -1,0 +1,76 @@
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}"
+  },
+  "builders": [
+    {
+    "name":"API_Documentation",
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key":"{{user `aws_secret_key`}}",
+    "region":"us-east-1",
+    "source_ami": "ami-0a313d6098716f372",
+    "instance_type": "t2.micro",
+    "ssh_username": "ubuntu",
+    "ami_name": "API Documetation {{timestamp}}",
+    "tags": {
+      "Name": "Darius-Packer-API_Documentation"
+    }
+  },
+  {
+    "name": "PostgresDB",
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key":"{{user `aws_secret_key`}}",
+    "region":"us-east-1",
+    "source_ami": "ami-0a313d6098716f372",
+    "instance_type": "t2.micro",
+    "ssh_username": "ubuntu",
+    "ami_name": "Database {{timestamp}}",
+    "tags": {
+      "Name": "Darius-Packer-database"
+    }
+  },
+  {
+    "name": "AH_Frontend",
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key":"{{user `aws_secret_key`}}",
+    "region":"us-east-1",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
+        "root-device-type": "ebs"
+      },
+      "owners": ["099720109477"],
+      "most_recent": true
+    },
+    "instance_type": "t2.micro",
+    "ssh_username": "ubuntu",
+    "ami_name": "Frontend {{timestamp}}",
+    "tags": {
+      "Name": "Darius-Packer-frontend"
+    }
+  }
+],
+
+  "provisioners": [
+    {
+      "type": "ansible",
+      "playbook_file": "./documentation/ah_documentation.yml",
+      "only": ["API_Documentation"]
+    },
+    {
+      "type": "ansible",
+      "playbook_file": "./database/ah_database.yml",
+      "only": ["PostgresDB"]
+    },
+    {
+      "type": "ansible",
+      "playbook_file": "./frontend/ah_frontend.yml",
+      "only": ["AH_Frontend"]
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+---
+
+- name: deploy ah frontend
+  hosts: all
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  gather_facts: False
+  vars:
+    nodejs_version: "11"
+    ansible_dest_release: "xenial"
+    ansible_python_interpreter: "/usr/bin/python3"
+
+  tasks:
+  - name: Install gpg key for node js
+    apt_key:
+      url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+      state: present
+
+  - name: Add nodejs repo
+    apt_repository:
+      repo: "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x {{ ansible_dest_release }} main"
+      state: present
+      update_cache: yes
+
+  - name: install nginx
+    apt:
+      name: nginx
+      state: latest
+
+  - name: install nodejs
+    apt:
+      name: nodejs
+      state: present
+
+  - name: install jest
+    npm:
+      name: jest
+      global: yes
+      version: 23.6.0
+
+  - name: install serve
+    npm:
+      name: serve
+      global: yes
+
+  # Task to configure nginx
+  - name: copy nginx config file
+    copy:
+      src: ah_config.cfg
+      dest: /etc/nginx/sites-available/ah_config.cfg
+
+  # Task to create symlink
+  - name: create the symlink between default to the new config
+    file:
+      src: /etc/nginx/sites-available/ah_config.cfg
+      dest: /etc/nginx/sites-enabled/default
+      state: link
+
+  - name : config file to run app in background
+    copy:
+      src: keep_alive_ah.service
+      dest: /lib/systemd/system/keep_alive_ah.service
+
+
+  # Task to restart nginx with new configs
+  - name: restart nginx due to config changes
+    become: yes
+    shell: |
+      /etc/init.d/nginx restart
+
+  # Task to clone the repo
+  - name: clone the repo
+    git:
+      repo: 'https://github.com/andela/ah-code-titans-frontend.git'
+      dest: /home/ubuntu/ah-code-titans-frontend
+      clone: yes
+
+ # Task to install application dependancies
+  - name: Install dependancies
+    shell:
+      cmd: |
+        cd /home/ubuntu/ah-code-titans-frontend
+        sudo npm install -ES --unsafe-perm=true
+
+ # Task to build the application
+  - name: build the application
+    shell:
+      cmd: |
+        cd /home/ubuntu/ah-code-titans-frontend
+        export REACT_APP_API='https://ah-codetitans-staging.herokuapp.com/'
+        sudo npm run build
+
+
+# File to run command
+  - name: Bash script to run the application
+    shell: |
+      touch /home/ubuntu/ah-code-titans-frontend/start_ah.sh && chmod u+x /home/ubuntu/ah-code-titans-frontend/start_ah.sh
+      echo "serve -s build" | tee /home/ubuntu/ah-code-titans-frontend/start_ah.sh
+
+# Start the application
+  - name: Start the application
+    shell: |
+      sudo systemctl daemon-reload
+      sudo systemctl start keep_alive_ah
+      sudo systemctl enable keep_alive_ah

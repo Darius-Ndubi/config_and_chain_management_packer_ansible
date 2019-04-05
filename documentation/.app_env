@@ -1,0 +1,16 @@
+export SECRET_KEY="mambojambo"
+export DB_NAME="ah"
+export DB_USER="dario"
+export APP_DEBUG="False"
+export DB_PASSWORD="daferario"
+export DB_PORT="5432"
+export DB_HOST="localhost"
+export EMAIL_HOST_PASSWORD="mail_pass"
+export EMAIL_HOST_USER="codetitans32@gmail.com"
+export SOCIAL_AUTH_FACEBOOK_KEY='facebook_auth_key'
+export SOCIAL_AUTH_FACEBOOK_SECRET='facebook_secret_key'
+export SOCIAL_AUTH_TWITTER_KEY='twitter_auth_key'
+export SOCIAL_AUTH_TWITTER_SECRET='twitter_secret_key'
+export SOCIAL_AUTH_GOOGLE_OAUTH2_KEY='google_auth_key'
+export SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET='google_secret_key'
+export FRONTEND='http://localhost:3000/'
