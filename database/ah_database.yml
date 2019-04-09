@@ -37,7 +37,7 @@
   - name: Install psycopg2
     pip:
       name: psycopg2
-      state: latest
+      version: 2.7.7
 
   - name: Create postgres db
     become_user: postgres
